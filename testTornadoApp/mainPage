@@ -1,0 +1,62 @@
+import tornado.web
+import tornado.ioloop
+import tornado.httpserver
+import tornado.options
+import os.path
+import torndb
+import bs4
+from bs4 import BeautifulSoup
+from tornado.options import define, options
+
+define(name='port', type=int, default= 8808, help = 'use the given port')
+define(name='mysql_database', default='myfamily', help='blog database name')
+define(name='mysql_usr', default='root', help='blog database user')
+define(name='mysql_password', default='19861212Gxj', help='blog database password')
+
+class testApplication(tornado.web.Application):
+    def __init__(self):
+        handlers = [(r"/", MainHandler), (r"/(\w+)", IndexHandler)]
+        settings = dict(template_path = os.path.join(os.path.dirname(__file__), "templates"),
+                        static_path = os.path.join(os.path.dirname(__file__), "static"),
+                        debug = True,)
+        tornado.web.Application.__init__(self, handlers, **settings)
+    conn = torndb.Connection(host="localhost", database=options.mysql_database,
+                                 user=options.mysql_usr, password=options.mysql_password)
+
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("InputPage.html", header = "Welcome to DB Index Page!")
+
+class IndexHandler(tornado.web.RequestHandler):
+    def get(self, name):
+        coll = self.application.conn.query("select * from myfamily where name=%s",name)
+        if coll:
+            self.render("SearchPage.html", header = "Result Page!",
+                        new_name = name, new_age = coll[0]['age'])
+        else:
+            self.render("jsAge.html")
+    def post(self, name):
+        age = self.get_argument('age')
+        newcoll = self.application.conn.execute("insert myfamily values(%name, %age)",name, age)
+        self.render("SearchPage.html", header = "Result Page!",
+                        new_name = name, new_age = age)
+
+
+
+
+
+
+
+
+
+def main():
+    tornado.options.parse_command_line()
+    http_server = tornado.httpserver.HTTPServer(testApplication())
+    http_server.listen(options.port)
+    tornado.ioloop.IOLoop.instance().start()
+
+if __name__ == "__main__":
+    main()
+

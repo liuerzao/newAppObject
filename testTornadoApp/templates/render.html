@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{% block title %}{% end %}</title>
+</head>
+<body>
+    <div align="center">
+        <header>
+            {% block header %}
+            {% end %}
+        </header>
+    </div>
+
+    <div align="left">
+        <content>
+            {% block content %}
+            {% end %}
+        </content>
+    </div>
+</body>
+<div align="center">
+    <footer>
+        {%block footer %}
+        {% end %}
+    </footer>
+</div>
+
+</html>
